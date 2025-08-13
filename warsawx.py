@@ -25,7 +25,7 @@ APP_NAME = "warsawx"
 BASE_DIR = os.path.join(os.getenv('APPDATA', os.path.expanduser('~/.config')), APP_NAME)
 CONFIG = {
     "app_title": "WarsawX",
-    "admin_username": "Recalls",  # Изменено без апострофа
+    "admin_username": "Recall's",
     "min_username_len": 3,
     "max_username_len": 17,
     "support_chat": "warsawx_support",
@@ -130,73 +130,73 @@ MESSAGES = {
         "call_ended": "Call ended",
         "end_call": "End call"
     },
-    "ru": {
+    "pl": {
         "welcome": "=== WarsawX ===",
-        "select_language": "Пожалуйста, выберите язык:",
-        "register": "Регистрация",
-        "login": "Войти",
-        "exit": "Выход",
-        "select_option": "Выберите опцию: ",
-        "invalid_choice": "Неверный выбор",
-        "registration": "--- Регистрация ---",
-        "enter_nickname": "Введите имя пользователя (3-17 символов, только A-Z, a-z, 0-9, -_): ",
-        "invalid_nickname": "Недопустимое имя. Используйте только буквы, цифры, - и _",
-        "nickname_taken": "Имя пользователя уже занято",
-        "set_password": "Задайте пароль: ",
-        "reg_success": "Регистрация успешна!",
-        "press_enter": "Нажмите Enter для продолжения...",
-        "login_title": "--- Вход ---",
-        "enter_password": "Пароль: ",
-        "welcome_user": "Добро пожаловать, {}!",
-        "auth_failed": "Ошибка аутентификации",
-        "login_failed": "Ошибка входа",
-        "main_menu": "--- Главное меню ---",
-        "create_chat": "Создать чат",
-        "join_chat": "Присоединиться к чату",
-        "profile_settings": "Настройки профиля",
-        "friends": "Друзья",
-        "support": "Поддержка",
-        "logout": "Выйти",
-        "back": "Назад",
-        "chat_created": "Чат создан! Поделитесь этим кодом: {}",
-        "enter_chat_code": "Введите код чата: ",
-        "chat_not_found": "Чат не найден",
-        "chat_history": "--- История чата ---",
-        "type_message": "Введите сообщение (или /exit для выхода): ",
-        "message_sent": "Сообщение отправлено",
-        "admin_menu": "--- Панель администратора ---",
-        "view_requests": "Просмотр запросов в поддержку",
-        "update_app": "Обновить приложение",
-        "verification_requests": "--- Запросы на верификацию ---",
-        "no_requests": "Нет ожидающих запросов",
-        "support_menu": "--- Поддержка ---",
-        "new_request": "Новый запрос",
-        "my_requests": "Мои запросы",
-        "enter_message": "Введите ваше сообщение: ",
-        "request_created": "Запрос создан (ID: {})",
-        "view_profile": "Просмотр профиля",
-        "friends_menu": "--- Друзья ---",
-        "add_friend": "Добавить друга",
-        "friend_requests": "Запросы в друзья",
-        "my_friends": "Мои друзья",
-        "enter_friend_username": "Введите имя пользователя друга: ",
-        "friend_request_sent": "Запрос на добавление в друзья отправлен {}",
-        "no_friend_requests": "Нет запросов в друзья",
-        "incoming_requests": "Входящие запросы в друзья",
-        "accept": "Принять",
-        "reject": "Отклонить",
-        "friend_added": "{} добавлен в друзья",
-        "friend_removed": "{} удален из друзей",
-        "voice_call": "Голосовой звонок",
-        "call_user": "Позвонить пользователю",
-        "active_calls": "Активные звонки",
-        "enter_username_to_call": "Введите имя пользователя: ",
-        "calling": "Звонок {}...",
-        "incoming_call": "Входящий звонок от {}",
-        "call_options": "1. Принять\n2. Отклонить\n3. Просмотр профиля",
-        "call_connected": "Звонок с {} установлен",
-        "call_ended": "Звонок завершен",
-        "end_call": "Завершить звонок"
+        "select_language": "Proszę wybrać język:",
+        "register": "Rejestracja",
+        "login": "Zaloguj",
+        "exit": "Wyjdź",
+        "select_option": "Wybierz opcję: ",
+        "invalid_choice": "Nieprawidłowy wybór",
+        "registration": "--- Rejestracja ---",
+        "enter_nickname": "Wprowadź nazwę użytkownika (3-17 znaków, tylko A-Z, a-z, 0-9, -_): ",
+        "invalid_nickname": "Nieprawidłowa nazwa użytkownika. Używaj tylko liter, cyfr, - i _",
+        "nickname_taken": "Nazwa użytkownika jest już zajęta",
+        "set_password": "Ustaw hasło: ",
+        "reg_success": "Rejestracja udana!",
+        "press_enter": "Naciśnij Enter, aby kontynuować...",
+        "login_title": "--- Logowanie ---",
+        "enter_password": "Hasło: ",
+        "welcome_user": "Witaj, {}!",
+        "auth_failed": "Błąd uwierzytelniania",
+        "login_failed": "Błąd logowania",
+        "main_menu": "--- Menu główne ---",
+        "create_chat": "Utwórz czat",
+        "join_chat": "Dołącz do czatu",
+        "profile_settings": "Ustawienia profilu",
+        "friends": "Znajomi",
+        "support": "Wsparcie",
+        "logout": "Wyloguj",
+        "back": "Powrót",
+        "chat_created": "Czat utworzony! Udostępnij ten kod: {}",
+        "enter_chat_code": "Wprowadź kod czatu: ",
+        "chat_not_found": "Czat nie znaleziony",
+        "chat_history": "--- Historia czatu ---",
+        "type_message": "Wpisz wiadomość (lub /exit aby wyjść): ",
+        "message_sent": "Wiadomość wysłana",
+        "admin_menu": "--- Panel administratora ---",
+        "view_requests": "Zobacz prośby o wsparcie",
+        "update_app": "Aktualizuj aplikację",
+        "verification_requests": "--- Prośby o weryfikację ---",
+        "no_requests": "Brak oczekujących próśb",
+        "support_menu": "--- Wsparcie ---",
+        "new_request": "Nowa prośba",
+        "my_requests": "Moje prośby",
+        "enter_message": "Wprowadź swoją wiadomość: ",
+        "request_created": "Prośba utworzona (ID: {})",
+        "view_profile": "Zobacz profil",
+        "friends_menu": "--- Znajomi ---",
+        "add_friend": "Dodaj znajomego",
+        "friend_requests": "Prośby o dodanie",
+        "my_friends": "Moi znajomi",
+        "enter_friend_username": "Wprowadź nazwę znajomego: ",
+        "friend_request_sent": "Prośba o dodanie wysłana do {}",
+        "no_friend_requests": "Brak próśb o dodanie",
+        "incoming_requests": "Przychodzące prośby o dodanie",
+        "accept": "Zaakceptuj",
+        "reject": "Odrzuć",
+        "friend_added": "{} dodany do znajomych",
+        "friend_removed": "{} usunięty ze znajomych",
+        "voice_call": "Rozmowa głosowa",
+        "call_user": "Zadzwoń do użytkownika",
+        "active_calls": "Aktywne rozmowy",
+        "enter_username_to_call": "Wprowadź nazwę użytkownika: ",
+        "calling": "Dzwonienie do {}...",
+        "incoming_call": "Przychodzące połączenie od {}",
+        "call_options": "1. Przyjmij\n2. Odrzuć\n3. Zobacz profil",
+        "call_connected": "Połączenie z {} nawiązane",
+        "call_ended": "Rozmowa zakończona",
+        "end_call": "Zakończ rozmowę"
     }
 }
 
@@ -209,7 +209,6 @@ def setup_directories():
         
         required_files = {
             PATHS["nicknames"]: "",
-            PATHS["language"]: "en",
             PATHS["lockouts"]: {},
             PATHS["integrity"]: hashlib.sha256(open(__file__, 'rb').read()).hexdigest(),
         }
@@ -261,6 +260,11 @@ class UserManager:
     def validate_username(username):
         if len(username) < CONFIG["min_username_len"] or len(username) > CONFIG["max_username_len"]:
             return False
+            
+        # Специальное разрешение для администратора
+        if username == "Recall's":
+            return True
+            
         allowed = string.ascii_letters + string.digits + "_-"
         return all(c in allowed for c in username)
 
@@ -478,13 +482,16 @@ class WarsawXApp:
         return key
 
     def load_language(self):
+        # Принудительно предлагаем выбор языка при первом запуске
+        if not os.path.exists(PATHS["language"]):
+            self.select_language()
+            return
+            
         if os.path.exists(PATHS["language"]):
             with open(PATHS["language"], 'r') as f:
                 lang = f.read().strip()
                 if lang in CONFIG["languages"]:
                     self.language = lang
-        else:
-            self.select_language()
 
     def select_language(self):
         print(self.t("select_language"))
