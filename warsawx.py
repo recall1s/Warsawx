@@ -20,7 +20,6 @@ from uuid import uuid4
 import glob
 import select
 import getpass
-import pyaudio
 import wave
 import socket
 
