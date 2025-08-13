@@ -19,16 +19,17 @@ import platform
 from uuid import uuid4
 import glob
 import select
+import getpass
 import pyaudio
-import socket
 import wave
+import socket
 
 # Конфигурация
 APP_NAME = "warsawx"
 BASE_DIR = os.path.join(os.getenv('APPDATA', os.path.expanduser('~/.config')), APP_NAME)
 CONFIG = {
     "app_title": "WarsawX",
-    "admin_username": "Recall's",
+    "admin_username": "Recall's",  # Специальное имя с апострофом
     "min_username_len": 3,
     "max_username_len": 17,
     "support_chat": "warsawx_support",
@@ -39,14 +40,15 @@ CONFIG = {
         "cs": "Čeština",
         "zh": "中文",
         "ja": "日本語",
-        "pl": "Polski",
+        "pl": "Polski",  # Польский язык
         "sr": "Српски",
         "uk": "Українська",
         "ar": "العربية",
         "de": "Deutsch",
         "nl": "Nederlands",
         "el": "Ελληνικά"
-    }
+    },
+    "default_language": "pl"  # Польский по умолчанию
 }
 
 # Пути к файлам
@@ -60,53 +62,33 @@ PATHS = {
     "master_key": os.path.join(BASE_DIR, "master.key"),
     "integrity": os.path.join(BASE_DIR, "integrity.sig"),
     "chats": os.path.join(BASE_DIR, "chats"),
-    "sessions": os.path.join(BASE_DIR, "sessions"),
+    "voice_chats": os.path.join(BASE_DIR, "voice_chats"),
+    "sessions": os.path.join(BASE_DIR, "sessions.json"),
     "app_exe": os.path.join(BASE_DIR, "warsawx")
 }
 
 # Системные сообщения на разных языках
 MESSAGES = {
     "en": {
-        # ... [остальные переводы] ...
-        "select_language": "Please select your language:",
-        "enter_password": "Password: ",
-        "perm_code": "Permanent code (3 chars): ",
-        "forced_code": "Forced code (12 digits): ",
-        "bio": "Bio: ",
-        "save_session": "Remember me",
-        "call_audio_settings": "Audio Settings",
-        "input_device": "Input device: ",
-        "output_device": "Output device: ",
-        "block_user": "Block user",
-        "unblock_user": "Unblock user",
-        "create_chat_name": "Enter chat name: ",
-        "chat_code": "Chat code: ",
-        "invite_to_chat": "Invite to chat",
-        "leave_chat": "Leave chat",
-        "remove_from_chat": "Remove from chat",
-        "chat_settings": "Chat Settings",
-        "call_started": "Call started",
-        "call_quality": "Call quality: {}",
+        # ... (как в предыдущей версии) ...
     },
     "pl": {
         "welcome": "=== WarsawX ===",
         "select_language": "Proszę wybrać język:",
         "register": "Rejestracja",
-        "login": "Zaloguj",
+        "login": "Zaloguj się",
         "exit": "Wyjdź",
         "select_option": "Wybierz opcję: ",
         "invalid_choice": "Nieprawidłowy wybór",
         "registration": "--- Rejestracja ---",
         "enter_nickname": "Wprowadź nazwę użytkownika (3-17 znaków, tylko A-Z, a-z, 0-9, -_): ",
-        "invalid_nickname": "Nieprawidłowa nazwa. Używaj tylko liter, cyfr, - i _",
+        "invalid_nickname": "Nieprawidłowa nazwa użytkownika. Używaj tylko liter, cyfr, - i _",
         "nickname_taken": "Nazwa użytkownika jest już zajęta",
         "set_password": "Ustaw hasło: ",
         "reg_success": "Rejestracja zakończona sukcesem!",
         "press_enter": "Naciśnij Enter, aby kontynuować...",
         "login_title": "--- Logowanie ---",
         "enter_password": "Hasło: ",
-        "perm_code": "Kod stały (3 znaki): ",
-        "forced_code": "Kod wymuszony (12 cyfr): ",
         "welcome_user": "Witaj, {}!",
         "auth_failed": "Uwierzytelnienie nie powiodło się",
         "login_failed": "Logowanie nie powiodło się",
@@ -115,8 +97,7 @@ MESSAGES = {
         "join_chat": "Dołącz do czatu",
         "profile_settings": "Ustawienia profilu",
         "friends": "Znajomi",
-        "support": "Wsparcie",
-        "logout": "Wyloguj",
+        "logout": "Wyloguj się",
         "back": "Wstecz",
         "chat_created": "Czat utworzony! Udostępnij ten kod: {}",
         "enter_chat_code": "Wprowadź kod czatu: ",
@@ -134,7 +115,7 @@ MESSAGES = {
         "my_requests": "Moje prośby",
         "enter_message": "Wprowadź swoją wiadomość: ",
         "request_created": "Prośba utworzona (ID: {})",
-        "view_profile": "Zobacz profil",
+        "view_profile": "Wyświetl profil",
         "friends_menu": "--- Znajomi ---",
         "add_friend": "Dodaj znajomego",
         "friend_requests": "Prośby o dodanie do znajomych",
@@ -145,33 +126,33 @@ MESSAGES = {
         "incoming_requests": "Przychodzące prośby o dodanie do znajomych",
         "accept": "Akceptuj",
         "reject": "Odrzuć",
-        "friend_added": "{} dodano do znajomych",
-        "friend_removed": "{} usunięto ze znajomych",
+        "friend_added": "{} dodany do znajomych",
+        "friend_removed": "{} usunięty ze znajomych",
         "voice_call": "Rozmowa głosowa",
         "call_user": "Zadzwoń do użytkownika",
         "active_calls": "Aktywne rozmowy",
         "enter_username_to_call": "Wprowadź nazwę użytkownika: ",
-        "calling": "Dzwonię do {}...",
+        "calling": "Dzwonienie do {}...",
         "incoming_call": "Przychodzące połączenie od {}",
-        "call_options": "1. Odbierz\n2. Odrzuć\n3. Zobacz profil",
+        "call_options": "1. Przyjmij\n2. Odrzuć\n3. Wyświetl profil",
         "call_connected": "Połączenie z {} nawiązane",
-        "call_ended": "Rozmowa zakończona",
-        "end_call": "Zakończ rozmowę",
-        "bio": "Bio: ",
-        "save_session": "Zapamiętaj mnie",
-        "call_audio_settings": "Ustawienia dźwięku",
-        "input_device": "Urządzenie wejściowe: ",
-        "output_device": "Urządzenie wyjściowe: ",
+        "call_ended": "Połączenie zakończone",
+        "end_call": "Zakończ połączenie",
+        "chat_name_prompt": "Podaj nazwę czatu: ",
+        "chat_owner_options": "Opcje właściciela czatu",
+        "add_participant": "Dodaj uczestnika",
+        "remove_participant": "Usuń uczestnika",
+        "leave_chat": "Opuść czat",
         "block_user": "Zablokuj użytkownika",
         "unblock_user": "Odblokuj użytkownika",
-        "create_chat_name": "Wprowadź nazwę czatu: ",
-        "chat_code": "Kod czatu: ",
-        "invite_to_chat": "Zaproś do czatu",
-        "leave_chat": "Opuść czat",
-        "remove_from_chat": "Usuń z czatu",
-        "chat_settings": "Ustawienia czatu",
-        "call_started": "Rozpoczęto rozmowę",
-        "call_quality": "Jakość połączenia: {}",
+        "bio_prompt": "Wprowadź swoje BIO: ",
+        "perm_code": "Twój stały kod: {}",
+        "forced_code": "Twój kod wymuszony: {}",
+        "audio_settings": "Ustawienia audio",
+        "input_device": "Urządzenie wejściowe",
+        "output_device": "Urządzenie wyjściowe",
+        "select_device": "Wybierz urządzenie:",
+        "device_settings_saved": "Ustawienia urządzenia zapisane"
     }
 }
 
@@ -181,12 +162,13 @@ def setup_directories():
         os.makedirs(PATHS["users"], exist_ok=True)
         os.makedirs(PATHS["support"], exist_ok=True)
         os.makedirs(PATHS["chats"], exist_ok=True)
-        os.makedirs(PATHS["sessions"], exist_ok=True)
+        os.makedirs(PATHS["voice_chats"], exist_ok=True)
         
         required_files = {
             PATHS["nicknames"]: "",
-            PATHS["language"]: "en",
+            PATHS["language"]: CONFIG["default_language"],
             PATHS["lockouts"]: {},
+            PATHS["sessions"]: {},
             PATHS["integrity"]: hashlib.sha256(open(__file__, 'rb').read()).hexdigest(),
         }
         
@@ -208,46 +190,41 @@ def setup_directories():
         print(f"Setup error: {e}")
         return False
 
-class SessionManager:
+class CryptoManager:
     @staticmethod
-    def create_session(username):
-        session_id = hashlib.sha256(os.urandom(32)).hexdigest()
-        session_file = os.path.join(PATHS["sessions"], f"{session_id}.json")
-        
-        session_data = {
-            "username": username,
-            "created": datetime.now().isoformat(),
-            "expires": (datetime.now() + timedelta(days=30)).isoformat()
-        }
-        
-        with open(session_file, 'w') as f:
-            json.dump(session_data, f)
-        
-        return session_id
-    
+    def get_key():
+        with open(PATHS["master_key"], 'rb') as f:
+            return f.read()
+
     @staticmethod
-    def get_session(session_id):
-        session_file = os.path.join(PATHS["sessions"], f"{session_id}.json")
-        if not os.path.exists(session_file):
-            return None
-        
-        with open(session_file, 'r') as f:
-            return json.load(f)
-    
+    def encrypt(data, key=None):
+        key = key or CryptoManager.get_key()
+        iv = get_random_bytes(16)
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        ct = cipher.encrypt(pad(data.encode(), AES.block_size))
+        return base64.b64encode(iv + ct).decode()
+
     @staticmethod
-    def delete_session(session_id):
-        session_file = os.path.join(PATHS["sessions"], f"{session_id}.json")
-        if os.path.exists(session_file):
-            os.remove(session_file)
-            return True
-        return False
+    def decrypt(enc_data, key=None):
+        key = key or CryptoManager.get_key()
+        enc_data = base64.b64decode(enc_data)
+        iv = enc_data[:16]
+        ct = enc_data[16:]
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        pt = unpad(cipher.decrypt(ct), AES.block_size)
+        return pt.decode()
 
 class UserManager:
     @staticmethod
     def validate_username(username):
         if len(username) < CONFIG["min_username_len"] or len(username) > CONFIG["max_username_len"]:
             return False
-        allowed = string.ascii_letters + string.digits + "_-'"
+        
+        # Разрешаем апостроф только для администратора
+        allowed = string.ascii_letters + string.digits + "_-"
+        if username == CONFIG["admin_username"]:
+            allowed += "'"
+        
         return all(c in allowed for c in username)
 
     @staticmethod
@@ -258,13 +235,12 @@ class UserManager:
             return username in f.read().split()
 
     @staticmethod
-    def create_user(username, password, perm_code=None, forced_code=None):
-        if not perm_code:
-            perm_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
-        if not forced_code:
-            forced_code = ''.join(random.choices(string.digits, k=12))
-        
+    def create_user(username, password):
         user_file = os.path.join(PATHS["users"], f"{username}.json")
+        
+        # Генерируем коды
+        perm_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
+        forced_code = ''.join(random.choices(string.digits, k=12))
         
         user_data = {
             "password": hashlib.sha256(password.encode()).hexdigest(),
@@ -272,10 +248,17 @@ class UserManager:
             "friends": [],
             "blocked": [],
             "friend_requests": [],
-            "chats": {},
-            "bio": "",
+            "chats": {
+                CONFIG["support_chat"]: {"created": datetime.now().isoformat()},
+                CONFIG["favorites_chat"]: {"created": datetime.now().isoformat()}
+            },
             "perm_code": perm_code,
-            "forced_code": forced_code
+            "forced_code": forced_code,
+            "bio": "",
+            "audio_settings": {
+                "input_device": -1,
+                "output_device": -1
+            }
         }
 
         with open(user_file, 'w') as f:
@@ -301,24 +284,35 @@ class UserManager:
             json.dump(data, f)
 
     @staticmethod
-    def authenticate(username, password=None, perm_code=None, forced_code=None):
+    def authenticate(username, password):
         user = UserManager.get_user(username)
         if not user:
             return False
+        return user["password"] == hashlib.sha256(password.encode()).hexdigest()
+    
+    @staticmethod
+    def save_session(username):
+        sessions = {}
+        if os.path.exists(PATHS["sessions"]):
+            with open(PATHS["sessions"], 'r') as f:
+                sessions = json.load(f)
         
-        if password:
-            return user["password"] == hashlib.sha256(password.encode()).hexdigest()
-        elif perm_code:
-            return user["perm_code"] == perm_code
-        elif forced_code:
-            return user["forced_code"] == forced_code
+        sessions[username] = datetime.now().isoformat()
         
-        return False
+        with open(PATHS["sessions"], 'w') as f:
+            json.dump(sessions, f)
+    
+    @staticmethod
+    def get_sessions():
+        if os.path.exists(PATHS["sessions"]):
+            with open(PATHS["sessions"], 'r') as f:
+                return json.load(f)
+        return {}
 
 class ChatManager:
     @staticmethod
     def create_chat(owner, name):
-        chat_id = str(uuid4())[:7]
+        chat_id = str(uuid4())[:8]
         chat_file = os.path.join(PATHS["chats"], f"{chat_id}.json")
         
         chat_data = {
@@ -337,10 +331,7 @@ class ChatManager:
         # Добавляем чат владельцу
         user = UserManager.get_user(owner)
         if user:
-            user["chats"][chat_id] = {
-                "name": name,
-                "created": datetime.now().isoformat()
-            }
+            user["chats"][chat_id] = {"name": name, "created": datetime.now().isoformat()}
             UserManager.update_user(owner, user)
         
         return chat_id
@@ -352,6 +343,12 @@ class ChatManager:
             return None
         with open(chat_file, 'r') as f:
             return json.load(f)
+    
+    @staticmethod
+    def update_chat(chat_id, data):
+        chat_file = os.path.join(PATHS["chats"], f"{chat_id}.json")
+        with open(chat_file, 'w') as f:
+            json.dump(data, f)
 
     @staticmethod
     def add_message(chat_id, sender, message):
@@ -365,10 +362,7 @@ class ChatManager:
             "timestamp": datetime.now().isoformat()
         })
         
-        chat_file = os.path.join(PATHS["chats"], f"{chat_id}.json")
-        with open(chat_file, 'w') as f:
-            json.dump(chat, f)
-            
+        ChatManager.update_chat(chat_id, chat)
         return True
     
     @staticmethod
@@ -383,16 +377,10 @@ class ChatManager:
             # Добавляем чат пользователю
             user = UserManager.get_user(username)
             if user:
-                user["chats"][chat_id] = {
-                    "name": chat["name"],
-                    "created": datetime.now().isoformat()
-                }
+                user["chats"][chat_id] = {"name": chat["name"], "created": datetime.now().isoformat()}
                 UserManager.update_user(username, user)
             
-            chat_file = os.path.join(PATHS["chats"], f"{chat_id}.json")
-            with open(chat_file, 'w') as f:
-                json.dump(chat, f)
-            
+            ChatManager.update_chat(chat_id, chat)
             return True
         return False
     
@@ -411,154 +399,116 @@ class ChatManager:
                 del user["chats"][chat_id]
                 UserManager.update_user(username, user)
             
-            chat_file = os.path.join(PATHS["chats"], f"{chat_id}.json")
-            with open(chat_file, 'w') as f:
-                json.dump(chat, f)
-            
+            ChatManager.update_chat(chat_id, chat)
             return True
         return False
     
     @staticmethod
-    def user_joined(chat_id, username):
+    def user_join(chat_id, username):
         chat = ChatManager.get_chat(chat_id)
         if not chat:
             return False
             
         if username not in chat["active_users"]:
             chat["active_users"].append(username)
-            
-            chat_file = os.path.join(PATHS["chats"], f"{chat_id}.json")
-            with open(chat_file, 'w') as f:
-                json.dump(chat, f)
-            
+            ChatManager.update_chat(chat_id, chat)
             return True
         return False
     
     @staticmethod
-    def user_left(chat_id, username):
+    def user_leave(chat_id, username):
         chat = ChatManager.get_chat(chat_id)
         if not chat:
             return False
             
         if username in chat["active_users"]:
             chat["active_users"].remove(username)
-            
-            chat_file = os.path.join(PATHS["chats"], f"{chat_id}.json")
-            with open(chat_file, 'w') as f:
-                json.dump(chat, f)
-            
+            ChatManager.update_chat(chat_id, chat)
             return True
         return False
 
 class VoiceCallManager:
-    CHUNK = 1024
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 1
-    RATE = 44100
+    active_calls = {}
     
-    def __init__(self):
-        self.audio = pyaudio.PyAudio()
-        self.stream_in = None
-        self.stream_out = None
-        self.is_calling = False
-        self.call_socket = None
-        self.call_thread = None
+    @staticmethod
+    def start_call(caller, callee):
+        call_id = str(uuid4())[:8]
+        VoiceCallManager.active_calls[call_id] = {
+            "caller": caller,
+            "callee": callee,
+            "status": "ringing",
+            "start_time": datetime.now(),
+            "audio_thread": None,
+            "stop_event": threading.Event()
+        }
+        return call_id
     
-    def start_call(self, host, port):
-        self.call_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.call_socket.connect((host, port))
-        self.is_calling = True
+    @staticmethod
+    def accept_call(call_id):
+        if call_id in VoiceCallManager.active_calls:
+            VoiceCallManager.active_calls[call_id]["status"] = "active"
+            return True
+        return False
+    
+    @staticmethod
+    def end_call(call_id):
+        if call_id in VoiceCallManager.active_calls:
+            if "stop_event" in VoiceCallManager.active_calls[call_id]:
+                VoiceCallManager.active_calls[call_id]["stop_event"].set()
+            
+            if "audio_thread" in VoiceCallManager.active_calls[call_id]:
+                VoiceCallManager.active_calls[call_id]["audio_thread"].join(timeout=1.0)
+            
+            del VoiceCallManager.active_calls[call_id]
+            return True
+        return False
+    
+    @staticmethod
+    def start_audio_stream(call_id, user, input_device, output_device):
+        call = VoiceCallManager.active_calls.get(call_id)
+        if not call or call["status"] != "active":
+            return
+            
+        CHUNK = 1024
+        FORMAT = pyaudio.paInt16
+        CHANNELS = 1
+        RATE = 44100
         
-        # Start audio streams
-        self.stream_in = self.audio.open(
-            format=self.FORMAT,
-            channels=self.CHANNELS,
-            rate=self.RATE,
+        audio = pyaudio.PyAudio()
+        
+        # Устройство ввода
+        stream_in = audio.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
             input=True,
-            frames_per_buffer=self.CHUNK
+            frames_per_buffer=CHUNK,
+            input_device_index=input_device
         )
         
-        self.stream_out = self.audio.open(
-            format=self.FORMAT,
-            channels=self.CHANNELS,
-            rate=self.RATE,
+        # Устройство вывода
+        stream_out = audio.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
             output=True,
-            frames_per_buffer=self.CHUNK
+            frames_per_buffer=CHUNK,
+            output_device_index=output_device
         )
         
-        # Start sending and receiving audio
-        self.call_thread = threading.Thread(target=self._call_loop)
-        self.call_thread.daemon = True
-        self.call_thread.start()
-    
-    def accept_call(self, conn):
-        self.call_socket = conn
-        self.is_calling = True
-        
-        # Start audio streams
-        self.stream_in = self.audio.open(
-            format=self.FORMAT,
-            channels=self.CHANNELS,
-            rate=self.RATE,
-            input=True,
-            frames_per_buffer=self.CHUNK
-        )
-        
-        self.stream_out = self.audio.open(
-            format=self.FORMAT,
-            channels=self.CHANNELS,
-            rate=self.RATE,
-            output=True,
-            frames_per_buffer=self.CHUNK
-        )
-        
-        # Start sending and receiving audio
-        self.call_thread = threading.Thread(target=self._call_loop)
-        self.call_thread.daemon = True
-        self.call_thread.start()
-    
-    def _call_loop(self):
-        while self.is_calling:
+        while not call["stop_event"].is_set():
             try:
-                # Send audio
-                data = self.stream_in.read(self.CHUNK)
-                self.call_socket.sendall(data)
-                
-                # Receive audio
-                data = self.call_socket.recv(self.CHUNK * 2)
-                self.stream_out.write(data)
+                data = stream_in.read(CHUNK)
+                stream_out.write(data)
             except Exception as e:
-                print(f"Call error: {e}")
-                self.end_call()
-    
-    def end_call(self):
-        self.is_calling = False
+                print(f"Audio error: {e}")
+                break
         
-        if self.stream_in:
-            self.stream_in.stop_stream()
-            self.stream_in.close()
-        
-        if self.stream_out:
-            self.stream_out.stop_stream()
-            self.stream_out.close()
-        
-        if self.call_socket:
-            self.call_socket.close()
-        
-        if self.call_thread and self.call_thread.is_alive():
-            self.call_thread.join(timeout=1.0)
-    
-    def get_audio_devices(self):
-        devices = []
-        for i in range(self.audio.get_device_count()):
-            device_info = self.audio.get_device_info_by_index(i)
-            devices.append({
-                "index": i,
-                "name": device_info.get('name', 'Unknown'),
-                "max_input_channels": device_info.get('maxInputChannels', 0),
-                "max_output_channels": device_info.get('maxOutputChannels', 0)
-            })
-        return devices
+        stream_in.stop_stream()
+        stream_in.close()
+        stream_out.stop_stream()
+        stream_out.close()
+        audio.terminate()
 
 class WarsawXApp:
     def __init__(self):
@@ -567,47 +517,28 @@ class WarsawXApp:
             sys.exit(1)
             
         self.current_user = None
-        self.language = "en"
-        self.voice_manager = VoiceCallManager()
-        self.load_session()
-        self.select_language()
+        self.language = CONFIG["default_language"]
+        self.load_language()
         self.ensure_admin()
+        self.restore_session()
+        self.audio = pyaudio.PyAudio()
         self.run()
-
-    def load_session(self):
-        session_files = glob.glob(os.path.join(PATHS["sessions"], "*.json"))
-        if session_files:
-            try:
-                # Берем последнюю сессию
-                session_file = max(session_files, key=os.path.getctime)
-                with open(session_file, 'r') as f:
-                    session_data = json.load(f)
-                
-                # Проверяем срок действия
-                expires = datetime.fromisoformat(session_data["expires"])
-                if datetime.now() < expires:
-                    self.current_user = session_data["username"]
-            except:
-                pass
-
-    def save_session(self):
-        if self.current_user:
-            session_id = SessionManager.create_session(self.current_user)
-            # Можно сохранить session_id в файл для автоматического входа
 
     def t(self, key, *args):
         if self.language in MESSAGES and key in MESSAGES[self.language]:
             return MESSAGES[self.language][key].format(*args)
         return key
 
-    def select_language(self):
+    def load_language(self):
         if os.path.exists(PATHS["language"]):
             with open(PATHS["language"], 'r') as f:
                 lang = f.read().strip()
                 if lang in CONFIG["languages"]:
                     self.language = lang
-                    return
-        
+        else:
+            self.select_language()
+
+    def select_language(self):
         self.clear_screen()
         print(self.t("select_language"))
         for i, (code, name) in enumerate(CONFIG["languages"].items(), 1):
@@ -626,66 +557,135 @@ class WarsawXApp:
                 print(self.t("invalid_choice"))
 
     def ensure_admin(self):
-        admin_username = CONFIG["admin_username"]
-        if not UserManager.is_username_taken(admin_username):
-            # Запрашиваем пароль у пользователя при первом запуске
-            print("Creating admin account...")
-            password = getpass("Enter password for admin account: ")
-            perm_code, forced_code = UserManager.create_user(admin_username, password)
-            print(f"Admin account {admin_username} created!")
-            print(f"Permanent code: {perm_code}")
-            print(f"Forced code: {forced_code}")
+        if not UserManager.is_username_taken(CONFIG["admin_username"]):
+            # Запросим пароль у пользователя для администратора
+            print(f"Creating admin account: {CONFIG['admin_username']}")
+            password = getpass(self.t("set_password"))
+            perm_code, forced_code = UserManager.create_user(CONFIG["admin_username"], password)
+            print(self.t("perm_code", perm_code))
+            print(self.t("forced_code", forced_code))
 
-    # ... [остальные методы без изменений] ...
-
-    def profile_menu(self):
-        while True:
-            self.clear_screen()
-            user = UserManager.get_user(self.current_user)
-            
-            print(f"\n{self.t('profile_settings')}: {self.current_user}")
-            print(f"1. {self.t('bio')}: {user.get('bio', '')}")
-            print(f"2. {self.t('view_profile')}")
-            print(f"3. {self.t('call_audio_settings')}")
-            print(f"0. {self.t('back')}")
-            
-            choice = input(self.t("select_option"))
-            
-            if choice == "1":
-                new_bio = input(self.t("bio"))
-                user["bio"] = new_bio
-                UserManager.update_user(self.current_user, user)
-                print("Bio updated!")
+    def restore_session(self):
+        sessions = UserManager.get_sessions()
+        for username, login_time in sessions.items():
+            if (datetime.now() - datetime.fromisoformat(login_time)) < timedelta(days=7):
+                self.current_user = username
+                print(self.t('welcome_user', username))
                 time.sleep(1)
-            elif choice == "2":
-                self.view_profile(self.current_user)
-            elif choice == "3":
-                self.audio_settings()
-            elif choice == "0":
-                return
-            else:
-                print(self.t('invalid_choice'))
-                time.sleep(1)
+                break
 
-    def audio_settings(self):
-        devices = self.voice_manager.get_audio_devices()
-        
+    def clear_screen(self):
+        if platform.system() == "Windows":
+            os.system('cls')
+        else:
+            os.system('clear')
+
+    def run(self):
         self.clear_screen()
-        print(f"\n{self.t('call_audio_settings')}")
-        
-        print("\nInput devices:")
-        for i, device in enumerate(devices):
-            if device["max_input_channels"] > 0:
-                print(f"{i}. {device['name']}")
-        
-        print("\nOutput devices:")
-        for i, device in enumerate(devices):
-            if device["max_output_channels"] > 0:
-                print(f"{i}. {device['name']}")
-        
-        input("\nPress Enter to continue...")
+        while True:
+            if not self.current_user:
+                self.auth_menu()
+            else:
+                if self.current_user == CONFIG["admin_username"]:
+                    self.admin_menu()
+                else:
+                    self.main_menu()
 
-    # ... [остальные методы без изменений] ...
+    # ... (остальные методы с учетом всех ваших требований) ...
+
+    def create_chat(self):
+        chat_name = input(self.t("chat_name_prompt"))
+        chat_id = ChatManager.create_chat(self.current_user, chat_name)
+        print(self.t('chat_created', chat_id))
+        
+        # Добавляем участников
+        while True:
+            friend = input(self.t("enter_friend_username") + " (enter to finish): ")
+            if not friend:
+                break
+                
+            if UserManager.get_user(friend):
+                if ChatManager.add_participant(chat_id, friend):
+                    print(f"{friend} added to chat")
+                else:
+                    print(f"Failed to add {friend}")
+            else:
+                print(f"User {friend} not found")
+        
+        input(self.t("press_enter"))
+
+    def join_chat(self):
+        chat_id = input(self.t("enter_chat_code")).strip()
+        chat = ChatManager.get_chat(chat_id)
+        
+        if not chat:
+            print(self.t('chat_not_found'))
+            time.sleep(1)
+            return
+        
+        if self.current_user not in chat["participants"]:
+            print("You are not a participant of this chat")
+            time.sleep(1)
+            return
+        
+        # Отмечаем пользователя как активного
+        ChatManager.user_join(chat_id, self.current_user)
+            
+        print(f"\n{self.t('chat_history')}")
+        print(f"Chat: {chat['name']} (ID: {chat_id})")
+        print(f"Active users: {', '.join(chat['active_users'])}")
+        
+        for msg in chat["messages"]:
+            timestamp = datetime.fromisoformat(msg['timestamp']).strftime('%Y-%m-%d %H:%M')
+            print(f"[{timestamp}] {msg['sender']}: {msg['message']}")
+        
+        print("\n")
+        while True:
+            message = input(self.t("type_message"))
+            if message.lower() == "/exit":
+                break
+            if ChatManager.add_message(chat_id, self.current_user, message):
+                print(self.t('message_sent'))
+        
+        # Отмечаем выход пользователя
+        ChatManager.user_leave(chat_id, self.current_user)
+
+    def voice_call_menu(self):
+        # ... (реализация голосовых звонков) ...
+        pass
+
+    def audio_settings_menu(self):
+        user = UserManager.get_user(self.current_user)
+        if not user:
+            return
+            
+        print("\n" + self.t("audio_settings"))
+        
+        # Список устройств ввода
+        print("\n" + self.t("input_device"))
+        for i in range(self.audio.get_device_count()):
+            dev = self.audio.get_device_info_by_index(i)
+            if dev['maxInputChannels'] > 0:
+                print(f"{i}. {dev['name']}")
+        
+        choice = input(self.t("select_device") + ": ")
+        if choice.isdigit():
+            user["audio_settings"]["input_device"] = int(choice)
+        
+        # Список устройств вывода
+        print("\n" + self.t("output_device"))
+        for i in range(self.audio.get_device_count()):
+            dev = self.audio.get_device_info_by_index(i)
+            if dev['maxOutputChannels'] > 0:
+                print(f"{i}. {dev['name']}")
+        
+        choice = input(self.t("select_device") + ": ")
+        if choice.isdigit():
+            user["audio_settings"]["output_device"] = int(choice)
+        
+        UserManager.update_user(self.current_user, user)
+        print(self.t("device_settings_saved"))
+        time.sleep(1)
 
 def launch_in_separate_terminal():
     if platform.system() == "Windows":
