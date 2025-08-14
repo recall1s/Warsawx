@@ -16,6 +16,7 @@ import sys
 import threading
 import subprocess
 import platform
+import pyaudio
 from uuid import uuid4
 import glob
 import select
